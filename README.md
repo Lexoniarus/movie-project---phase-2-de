@@ -16,6 +16,7 @@ and can generate a simple HTML website from the saved movies.
 - Show movie ratings on the generated website
 - Link movie posters to their IMDb pages
 - Show country flags next to movies on the generated website
+- Show a movie count and average rating summary on the website
 
 ## Setup
 

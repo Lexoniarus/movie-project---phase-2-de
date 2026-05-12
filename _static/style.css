@@ -12,6 +12,11 @@ body {
   font-size: 16pt;
 }
 
+.list-movies-title p {
+  font-size: 0.7em;
+  margin: 0 0 10px;
+}
+
 .movie-grid {
   list-style-type: none;
   padding: 0 24px 40px;

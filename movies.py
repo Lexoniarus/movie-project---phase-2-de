@@ -438,6 +438,22 @@ def generate_movie_grid(movies):
     return "\n        ".join(movie_items)
 
 
+def generate_website_summary(movies):
+    """Generate a short summary for the movie website."""
+    movie_count = len(movies)
+
+    if movie_count == 0:
+        return "No movies saved yet."
+
+    ratings = [details["rating"] for details in movies.values()]
+    average_rating = statistics.mean(ratings)
+
+    if movie_count == 1:
+        return f"1 movie | Average rating: {average_rating:.1f}/10"
+
+    return f"{movie_count} movies | Average rating: {average_rating:.1f}/10"
+
+
 def get_user_website_path(user):
     """Return the generated website path for one user."""
     safe_name = re.sub(r"[^a-zA-Z0-9_-]+", "_", user["name"]).strip("_")
@@ -452,6 +468,7 @@ def generate_website(user):
     """Generate an HTML website from the stored movies."""
     movies = storage.list_movies(user["id"])
     movie_grid = generate_movie_grid(movies)
+    website_summary = generate_website_summary(movies)
     website_file_path = get_user_website_path(user)
 
     with TEMPLATE_FILE_PATH.open("r", encoding="utf-8") as template_file:
@@ -465,6 +482,10 @@ def generate_website(user):
     website_content = website_content.replace(
         "__TEMPLATE_MOVIE_GRID__",
         movie_grid,
+    )
+    website_content = website_content.replace(
+        "__TEMPLATE_SUMMARY__",
+        escape(website_summary),
     )
 
     with website_file_path.open("w", encoding="utf-8") as website_file:
