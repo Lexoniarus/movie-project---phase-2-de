@@ -5,7 +5,7 @@ from __future__ import annotations
 import statistics
 from datetime import datetime
 
-import movie_storage
+import movie_storage_sql as storage
 
 
 MIN_RATING = 0.0
@@ -119,19 +119,21 @@ def display_movie_entries(movie_entries):
 
 def list_movies():
     """Display all movies with their release year and rating."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
 
     if not movies:
         print("No movies found.")
         return
 
     print(f"{len(movies)} movies in total")
-    display_movie_entries(sorted(movies.items(), key=lambda item: item[0].lower()))
+    display_movie_entries(
+        sorted(movies.items(), key=lambda item: item[0].lower())
+    )
 
 
 def add_movie():
     """Add a new movie to the storage."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
     title = prompt_non_empty_title("Enter new movie name: ")
 
     if title in movies:
@@ -141,26 +143,26 @@ def add_movie():
     year = prompt_year("Enter movie year: ")
     rating = prompt_rating("Enter movie rating: ")
 
-    movie_storage.add_movie(title, year, rating)
+    storage.add_movie(title, year, rating)
     print(f"Movie '{title}' successfully added.")
 
 
 def delete_movie():
     """Delete a movie from the storage."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
     title = prompt_non_empty_title("Enter movie name to delete: ")
 
     if title not in movies:
         print(f"Movie '{title}' doesn't exist!")
         return
 
-    movie_storage.delete_movie(title)
+    storage.delete_movie(title)
     print(f"Movie '{title}' successfully deleted.")
 
 
 def update_movie():
     """Update the rating of an existing movie."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
     title = prompt_non_empty_title("Enter movie name to update: ")
 
     if title not in movies:
@@ -168,13 +170,13 @@ def update_movie():
         return
 
     rating = prompt_rating("Enter new movie rating: ")
-    movie_storage.update_movie(title, rating)
+    storage.update_movie(title, rating)
     print(f"Movie '{title}' successfully updated.")
 
 
 def show_stats():
     """Display rating statistics for all movies."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
 
     if not movies:
         print("No movies found.")
@@ -193,7 +195,7 @@ def show_stats():
 
 def search_movie():
     """Search movies by a partial title match."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
 
     if not movies:
         print("No movies found.")
@@ -218,7 +220,7 @@ def search_movie():
 
 def sort_movies_by_rating():
     """Display movies sorted by rating."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
 
     if not movies:
         print("No movies found.")
@@ -238,7 +240,7 @@ def sort_movies_by_rating():
 
 def sort_movies_by_year():
     """Display movies sorted by release year."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
 
     if not movies:
         print("No movies found.")
@@ -258,7 +260,7 @@ def sort_movies_by_year():
 
 def filter_movies():
     """Display movies filtered by rating and release year."""
-    movies = movie_storage.get_movies()
+    movies = storage.list_movies()
 
     if not movies:
         print("No movies found.")
