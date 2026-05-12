@@ -15,43 +15,99 @@ DATA_DIR.mkdir(exist_ok=True)
 engine = create_engine(DB_URL, echo=True)
 
 
+def _create_users_table():
+    """Create the users table if it does not exist."""
+    with engine.connect() as connection:
+        connection.execute(text("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL
+            )
+        """))
+        connection.commit()
+
+
 def _create_movies_table():
     """Create the movies table if it does not exist."""
     with engine.connect() as connection:
         connection.execute(text("""
             CREATE TABLE IF NOT EXISTS movies (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT UNIQUE NOT NULL,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
                 year INTEGER NOT NULL,
                 rating REAL NOT NULL,
-                poster_url TEXT
+                poster_url TEXT,
+                UNIQUE(user_id, title),
+                FOREIGN KEY(user_id) REFERENCES users(id)
             )
         """))
         connection.commit()
 
 
-def _ensure_poster_url_column():
-    """Add the poster_url column to older local databases."""
+def _recreate_movies_table():
+    """Recreate the movies table for the current user-profile schema."""
+    with engine.connect() as connection:
+        connection.execute(text("DROP TABLE IF EXISTS movies"))
+        connection.commit()
+
+    _create_movies_table()
+
+
+def _ensure_movies_schema():
+    """Ensure the movies table contains user profile columns."""
     with engine.connect() as connection:
         result = connection.execute(text("PRAGMA table_info(movies)"))
         column_names = [row[1] for row in result.fetchall()]
 
-        if "poster_url" not in column_names:
-            connection.execute(
-                text("ALTER TABLE movies ADD COLUMN poster_url TEXT")
-            )
-            connection.commit()
+    if "user_id" not in column_names:
+        _recreate_movies_table()
 
 
+_create_users_table()
 _create_movies_table()
-_ensure_poster_url_column()
+_ensure_movies_schema()
 
 
-def list_movies():
-    """Retrieve all movies from the database."""
+def list_users():
+    """Retrieve all user profiles from the database."""
     with engine.connect() as connection:
         result = connection.execute(
-            text("SELECT title, year, rating, poster_url FROM movies")
+            text("SELECT id, name FROM users ORDER BY name")
+        )
+        users = result.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "name": row[1],
+        }
+        for row in users
+    ]
+
+
+def add_user(name):
+    """Add a new user profile and return its id."""
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("INSERT INTO users (name) VALUES (:name)"),
+            {"name": name},
+        )
+        connection.commit()
+
+    return result.lastrowid
+
+
+def list_movies(user_id):
+    """Retrieve all movies for one user from the database."""
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT title, year, rating, poster_url
+                FROM movies
+                WHERE user_id = :user_id
+            """),
+            {"user_id": user_id},
         )
         movies = result.fetchall()
 
@@ -65,16 +121,29 @@ def list_movies():
     }
 
 
-def add_movie(title, year, rating, poster_url=""):
-    """Add a new movie to the database."""
+def add_movie(user_id, title, year, rating, poster_url=""):
+    """Add a new movie to one user's collection."""
     with engine.connect() as connection:
         try:
             connection.execute(
                 text("""
-                    INSERT INTO movies (title, year, rating, poster_url)
-                    VALUES (:title, :year, :rating, :poster_url)
+                    INSERT INTO movies (
+                        user_id,
+                        title,
+                        year,
+                        rating,
+                        poster_url
+                    )
+                    VALUES (
+                        :user_id,
+                        :title,
+                        :year,
+                        :rating,
+                        :poster_url
+                    )
                 """),
                 {
+                    "user_id": user_id,
                     "title": title,
                     "year": year,
                     "rating": rating,
@@ -87,24 +156,35 @@ def add_movie(title, year, rating, poster_url=""):
             print(f"Error: {error}")
 
 
-def delete_movie(title):
-    """Delete a movie from the database."""
+def delete_movie(user_id, title):
+    """Delete a movie from one user's collection."""
     with engine.connect() as connection:
         connection.execute(
-            text("DELETE FROM movies WHERE title = :title"),
-            {"title": title},
+            text("""
+                DELETE FROM movies
+                WHERE user_id = :user_id AND title = :title
+            """),
+            {
+                "user_id": user_id,
+                "title": title,
+            },
         )
         connection.commit()
 
     print(f"Movie '{title}' deleted successfully.")
 
 
-def update_movie(title, rating):
-    """Update a movie's rating in the database."""
+def update_movie(user_id, title, rating):
+    """Update a movie's rating in one user's collection."""
     with engine.connect() as connection:
         connection.execute(
-            text("UPDATE movies SET rating = :rating WHERE title = :title"),
+            text("""
+                UPDATE movies
+                SET rating = :rating
+                WHERE user_id = :user_id AND title = :title
+            """),
             {
+                "user_id": user_id,
                 "title": title,
                 "rating": rating,
             },

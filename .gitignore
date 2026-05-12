@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .env
-_static/index.html
+_static/*.html
+!_static/index_template.html
 movies.db
 data/*.db

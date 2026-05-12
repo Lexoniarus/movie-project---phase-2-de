@@ -11,6 +11,7 @@ and can generate a simple HTML website from the saved movies.
 - Delete and update saved movies
 - Show statistics, search, sort, and filter movies
 - Generate a static movie website with posters
+- Create separate user profiles with individual movie collections
 
 ## Setup
 
@@ -34,8 +35,11 @@ Start the app from the project root:
 python movies.py
 ```
 
+When the app starts, select an existing user profile or create a new one. All
+movie commands work only with the active user's collection.
+
 Use menu option `9` to generate the website. The generated file is written to
-`_static/index.html`.
+`_static/<user-name>.html`.
 
 ## Project Structure
 

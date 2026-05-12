@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from html import escape
 from pathlib import Path
+import re
 import statistics
 from datetime import datetime
 
@@ -11,15 +12,13 @@ import movie_api
 from storage import movie_storage_sql as storage
 
 
-APP_TITLE = "My Movie App"
 MIN_RATING = 0.0
 MAX_RATING = 10.0
 MIN_YEAR = 1888
 MAX_YEAR = datetime.now().year + 10
 STATIC_DIR = Path(__file__).resolve().parent / "_static"
 TEMPLATE_FILE_PATH = STATIC_DIR / "index_template.html"
-WEBSITE_FILE_PATH = STATIC_DIR / "index.html"
-VALID_MENU_CHOICES = {str(number) for number in range(11)}
+VALID_MENU_CHOICES = {str(number) for number in range(12)}
 
 
 def print_menu():
@@ -36,17 +35,18 @@ def print_menu():
     print("8. Sort movies by year")
     print("9. Generate website")
     print("10. Filter movies")
+    print("11. Switch user")
 
 
 def prompt_menu_choice():
     """Prompt the user for a valid menu choice."""
     while True:
-        choice = input("Enter choice (0-10): ").strip()
+        choice = input("Enter choice (0-11): ").strip()
 
         if choice in VALID_MENU_CHOICES:
             return choice
 
-        print("Invalid choice. Please enter a number from 0 to 10.")
+        print("Invalid choice. Please enter a number from 0 to 11.")
 
 
 def prompt_non_empty_title(prompt_text):
@@ -125,12 +125,64 @@ def display_movie_entries(movie_entries):
         print(f"{title} ({details['year']}): {details['rating']:.1f}")
 
 
-def list_movies():
+def create_user():
+    """Create a new user profile and return it."""
+    while True:
+        name = prompt_non_empty_title("Enter new user name: ")
+        users = storage.list_users()
+
+        if any(user["name"].lower() == name.lower() for user in users):
+            print(f"User '{name}' already exists.")
+            continue
+
+        user_id = storage.add_user(name)
+        print(f"User '{name}' created successfully.")
+
+        return {
+            "id": user_id,
+            "name": name,
+        }
+
+
+def select_user():
+    """Prompt the user to select or create a profile."""
+    while True:
+        users = storage.list_users()
+
+        print("Welcome to the Movie App!")
+        print("Select a user:")
+
+        for index, user in enumerate(users, start=1):
+            print(f"{index}. {user['name']}")
+
+        create_choice = len(users) + 1
+        print(f"{create_choice}. Create new user")
+
+        choice = input("Enter choice: ").strip()
+
+        try:
+            selected_index = int(choice)
+        except ValueError:
+            print("Invalid choice. Please enter a number.")
+            continue
+
+        if selected_index == create_choice:
+            return create_user()
+
+        if 1 <= selected_index <= len(users):
+            selected_user = users[selected_index - 1]
+            print(f"Welcome back, {selected_user['name']}!")
+            return selected_user
+
+        print("Invalid choice. Please select one of the listed options.")
+
+
+def list_movies(user):
     """Display all movies with their release year and rating."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
 
     if not movies:
-        print("No movies found.")
+        print(f"{user['name']}, your movie collection is empty.")
         return
 
     print(f"{len(movies)} movies in total")
@@ -139,9 +191,9 @@ def list_movies():
     )
 
 
-def add_movie():
+def add_movie(user):
     """Add a new movie to the storage."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
     title = prompt_non_empty_title("Enter new movie name: ")
 
     movie_details = movie_api.get_movie_details(title)
@@ -155,30 +207,34 @@ def add_movie():
         return
 
     storage.add_movie(
+        user["id"],
         movie_details["title"],
         movie_details["year"],
         movie_details["rating"],
         movie_details["poster_url"],
     )
-    print(f"Movie '{movie_details['title']}' successfully added.")
+    print(
+        f"Movie '{movie_details['title']}' successfully added "
+        f"to {user['name']}'s collection."
+    )
 
 
-def delete_movie():
+def delete_movie(user):
     """Delete a movie from the storage."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
     title = prompt_non_empty_title("Enter movie name to delete: ")
 
     if title not in movies:
         print(f"Movie '{title}' doesn't exist!")
         return
 
-    storage.delete_movie(title)
+    storage.delete_movie(user["id"], title)
     print(f"Movie '{title}' successfully deleted.")
 
 
-def update_movie():
+def update_movie(user):
     """Update the rating of an existing movie."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
     title = prompt_non_empty_title("Enter movie name to update: ")
 
     if title not in movies:
@@ -186,13 +242,13 @@ def update_movie():
         return
 
     rating = prompt_rating("Enter new movie rating: ")
-    storage.update_movie(title, rating)
+    storage.update_movie(user["id"], title, rating)
     print(f"Movie '{title}' successfully updated.")
 
 
-def show_stats():
+def show_stats(user):
     """Display rating statistics for all movies."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
 
     if not movies:
         print("No movies found.")
@@ -209,9 +265,9 @@ def show_stats():
     print(f"Worst movie: {worst_movie[0]}, {worst_movie[1]['rating']:.1f}")
 
 
-def search_movie():
+def search_movie(user):
     """Search movies by a partial title match."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
 
     if not movies:
         print("No movies found.")
@@ -234,9 +290,9 @@ def search_movie():
     )
 
 
-def sort_movies_by_rating():
+def sort_movies_by_rating(user):
     """Display movies sorted by rating."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
 
     if not movies:
         print("No movies found.")
@@ -254,9 +310,9 @@ def sort_movies_by_rating():
     display_movie_entries(sorted_movies)
 
 
-def sort_movies_by_year():
+def sort_movies_by_year(user):
     """Display movies sorted by release year."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
 
     if not movies:
         print("No movies found.")
@@ -274,9 +330,9 @@ def sort_movies_by_year():
     display_movie_entries(sorted_movies)
 
 
-def filter_movies():
+def filter_movies(user):
     """Display movies filtered by rating and release year."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
 
     if not movies:
         print("No movies found.")
@@ -350,52 +406,73 @@ def generate_movie_grid(movies):
     return "\n        ".join(movie_items)
 
 
-def generate_website():
+def get_user_website_path(user):
+    """Return the generated website path for one user."""
+    safe_name = re.sub(r"[^a-zA-Z0-9_-]+", "_", user["name"]).strip("_")
+
+    if not safe_name:
+        safe_name = "user"
+
+    return STATIC_DIR / f"{safe_name}.html"
+
+
+def generate_website(user):
     """Generate an HTML website from the stored movies."""
-    movies = storage.list_movies()
+    movies = storage.list_movies(user["id"])
     movie_grid = generate_movie_grid(movies)
+    website_file_path = get_user_website_path(user)
 
     with TEMPLATE_FILE_PATH.open("r", encoding="utf-8") as template_file:
         template_content = template_file.read()
 
-    website_content = template_content.replace("__TEMPLATE_TITLE__", APP_TITLE)
+    website_title = f"{user['name']}'s Movie App"
+    website_content = template_content.replace(
+        "__TEMPLATE_TITLE__",
+        website_title,
+    )
     website_content = website_content.replace(
         "__TEMPLATE_MOVIE_GRID__",
         movie_grid,
     )
 
-    with WEBSITE_FILE_PATH.open("w", encoding="utf-8") as website_file:
+    with website_file_path.open("w", encoding="utf-8") as website_file:
         website_file.write(website_content)
 
     print("Website was generated successfully.")
 
 
-def handle_menu_choice(choice):
+def handle_menu_choice(choice, user):
     """Execute the action that belongs to the chosen menu option."""
     if choice == "1":
-        list_movies()
+        list_movies(user)
     elif choice == "2":
-        add_movie()
+        add_movie(user)
     elif choice == "3":
-        delete_movie()
+        delete_movie(user)
     elif choice == "4":
-        update_movie()
+        update_movie(user)
     elif choice == "5":
-        show_stats()
+        show_stats(user)
     elif choice == "6":
-        search_movie()
+        search_movie(user)
     elif choice == "7":
-        sort_movies_by_rating()
+        sort_movies_by_rating(user)
     elif choice == "8":
-        sort_movies_by_year()
+        sort_movies_by_year(user)
     elif choice == "9":
-        generate_website()
+        generate_website(user)
     elif choice == "10":
-        filter_movies()
+        filter_movies(user)
+    elif choice == "11":
+        return select_user()
+
+    return user
 
 
 def main():
     """Run the Movies application."""
+    active_user = select_user()
+
     while True:
         print_menu()
         choice = prompt_menu_choice()
@@ -404,7 +481,7 @@ def main():
             print("Bye!")
             break
 
-        handle_menu_choice(choice)
+        active_user = handle_menu_choice(choice, active_user)
         print()
 
 
