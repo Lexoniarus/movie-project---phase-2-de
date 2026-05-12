@@ -213,6 +213,8 @@ def add_movie(user):
         movie_details["rating"],
         movie_details["poster_url"],
         movie_details["imdb_id"],
+        movie_details["country"],
+        movie_details["country_flag"],
     )
     print(
         f"Movie '{movie_details['title']}' successfully added "
@@ -392,9 +394,15 @@ def generate_movie_grid(movies):
         poster_url = details.get("poster_url") or ""
         note = details.get("note") or ""
         imdb_id = details.get("imdb_id") or ""
+        country = details.get("country") or ""
+        country_flag = details.get("country_flag") or ""
         escaped_title = escape(title)
         movie_title = f"<div class=\"movie-title\">{escaped_title}</div>"
         movie_year = f"<div class=\"movie-year\">{details['year']}</div>"
+        movie_country = (
+            f"<div class=\"movie-country\" title=\"{escape(country)}\">"
+            f"{escape(country_flag)} {escape(country)}</div>"
+        )
         movie_rating = (
             f"<div class=\"movie-rating\">Rating: "
             f"{details['rating']:.1f}/10</div>"
@@ -421,6 +429,7 @@ def generate_movie_grid(movies):
             f"{movie_poster}\n"
             f"                {movie_title}\n"
             f"                {movie_year}\n"
+            f"                {movie_country}\n"
             f"                {movie_rating}\n"
             "            </div>\n"
             "        </li>"

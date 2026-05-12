@@ -8,6 +8,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+import country_api
+
 
 OMDB_API_URL = "http://www.omdbapi.com/"
 API_KEY_ENV_NAME = "OMDB_API_KEY"
@@ -73,10 +75,14 @@ def get_movie_details(title, api_key=None):
     if poster_url == "N/A":
         poster_url = ""
 
+    country = movie_data.get("Country", "")
+
     return {
         "title": movie_data["Title"],
         "year": year,
         "rating": rating,
         "poster_url": poster_url,
         "imdb_id": movie_data.get("imdbID", ""),
+        "country": country,
+        "country_flag": country_api.get_country_flag(country),
     }

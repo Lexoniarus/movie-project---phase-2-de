@@ -15,6 +15,7 @@ and can generate a simple HTML website from the saved movies.
 - Add personal notes to movies and show them as poster hover text
 - Show movie ratings on the generated website
 - Link movie posters to their IMDb pages
+- Show country flags next to movies on the generated website
 
 ## Setup
 
