@@ -4,3 +4,4 @@ __pycache__/
 .env
 _static/index.html
 movies.db
+data/*.db

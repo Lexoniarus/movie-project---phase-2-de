@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from sqlalchemy import create_engine, text
 
 
-DB_URL = "sqlite:///movies.db"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DB_FILE_PATH = DATA_DIR / "movies.db"
+DB_URL = f"sqlite:///{DB_FILE_PATH.as_posix()}"
 
+DATA_DIR.mkdir(exist_ok=True)
 engine = create_engine(DB_URL, echo=True)
 
 

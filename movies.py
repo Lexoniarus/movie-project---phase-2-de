@@ -8,7 +8,7 @@ import statistics
 from datetime import datetime
 
 import movie_api
-import movie_storage_sql as storage
+from storage import movie_storage_sql as storage
 
 
 APP_TITLE = "My Movie App"
