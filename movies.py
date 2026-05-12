@@ -233,16 +233,16 @@ def delete_movie(user):
 
 
 def update_movie(user):
-    """Update the rating of an existing movie."""
+    """Add or update the note for an existing movie."""
     movies = storage.list_movies(user["id"])
-    title = prompt_non_empty_title("Enter movie name to update: ")
+    title = prompt_non_empty_title("Enter movie name: ")
 
     if title not in movies:
         print(f"Movie '{title}' doesn't exist!")
         return
 
-    rating = prompt_rating("Enter new movie rating: ")
-    storage.update_movie(user["id"], title, rating)
+    note = prompt_non_empty_title("Enter movie note: ")
+    storage.update_movie(user["id"], title, note)
     print(f"Movie '{title}' successfully updated.")
 
 
@@ -389,6 +389,7 @@ def generate_movie_grid(movies):
 
     for title, details in sorted(movies.items(), key=lambda item: item[0]):
         poster_url = details.get("poster_url") or ""
+        note = details.get("note") or ""
         escaped_title = escape(title)
         movie_title = f"<div class=\"movie-title\">{escaped_title}</div>"
         movie_year = f"<div class=\"movie-year\">{details['year']}</div>"
@@ -396,7 +397,8 @@ def generate_movie_grid(movies):
             "<li>\n"
             "            <div class=\"movie\">\n"
             "                <img class=\"movie-poster\"\n"
-            f"                     src=\"{escape(poster_url)}\"/>\n"
+            f"                     src=\"{escape(poster_url)}\"\n"
+            f"                     title=\"{escape(note)}\"/>\n"
             f"                {movie_title}\n"
             f"                {movie_year}\n"
             "            </div>\n"

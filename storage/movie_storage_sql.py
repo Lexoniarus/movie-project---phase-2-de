@@ -38,6 +38,7 @@ def _create_movies_table():
                 year INTEGER NOT NULL,
                 rating REAL NOT NULL,
                 poster_url TEXT,
+                note TEXT,
                 UNIQUE(user_id, title),
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
@@ -62,6 +63,10 @@ def _ensure_movies_schema():
 
     if "user_id" not in column_names:
         _recreate_movies_table()
+    elif "note" not in column_names:
+        with engine.connect() as connection:
+            connection.execute(text("ALTER TABLE movies ADD COLUMN note TEXT"))
+            connection.commit()
 
 
 _create_users_table()
@@ -103,7 +108,7 @@ def list_movies(user_id):
     with engine.connect() as connection:
         result = connection.execute(
             text("""
-                SELECT title, year, rating, poster_url
+                SELECT title, year, rating, poster_url, note
                 FROM movies
                 WHERE user_id = :user_id
             """),
@@ -116,6 +121,7 @@ def list_movies(user_id):
             "year": row[1],
             "rating": row[2],
             "poster_url": row[3],
+            "note": row[4],
         }
         for row in movies
     }
@@ -174,19 +180,19 @@ def delete_movie(user_id, title):
     print(f"Movie '{title}' deleted successfully.")
 
 
-def update_movie(user_id, title, rating):
-    """Update a movie's rating in one user's collection."""
+def update_movie(user_id, title, note):
+    """Update a movie's note in one user's collection."""
     with engine.connect() as connection:
         connection.execute(
             text("""
                 UPDATE movies
-                SET rating = :rating
+                SET note = :note
                 WHERE user_id = :user_id AND title = :title
             """),
             {
                 "user_id": user_id,
                 "title": title,
-                "rating": rating,
+                "note": note,
             },
         )
         connection.commit()
