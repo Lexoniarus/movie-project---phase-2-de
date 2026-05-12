@@ -78,4 +78,5 @@ def get_movie_details(title, api_key=None):
         "year": year,
         "rating": rating,
         "poster_url": poster_url,
+        "imdb_id": movie_data.get("imdbID", ""),
     }

@@ -212,6 +212,7 @@ def add_movie(user):
         movie_details["year"],
         movie_details["rating"],
         movie_details["poster_url"],
+        movie_details["imdb_id"],
     )
     print(
         f"Movie '{movie_details['title']}' successfully added "
@@ -390,6 +391,7 @@ def generate_movie_grid(movies):
     for title, details in sorted(movies.items(), key=lambda item: item[0]):
         poster_url = details.get("poster_url") or ""
         note = details.get("note") or ""
+        imdb_id = details.get("imdb_id") or ""
         escaped_title = escape(title)
         movie_title = f"<div class=\"movie-title\">{escaped_title}</div>"
         movie_year = f"<div class=\"movie-year\">{details['year']}</div>"
@@ -397,12 +399,26 @@ def generate_movie_grid(movies):
             f"<div class=\"movie-rating\">Rating: "
             f"{details['rating']:.1f}/10</div>"
         )
+        movie_poster = (
+            "                <img class=\"movie-poster\"\n"
+            f"                     src=\"{escape(poster_url)}\"\n"
+            f"                     title=\"{escape(note)}\"/>"
+        )
+
+        if imdb_id:
+            imdb_url = f"https://www.imdb.com/title/{imdb_id}/"
+            movie_poster = (
+                f"                <a href=\"{escape(imdb_url)}\"\n"
+                "                   target=\"_blank\">\n"
+                "    "
+                f"{movie_poster.lstrip()}\n"
+                "                </a>"
+            )
+
         movie_items.append(
             "<li>\n"
             "            <div class=\"movie\">\n"
-            "                <img class=\"movie-poster\"\n"
-            f"                     src=\"{escape(poster_url)}\"\n"
-            f"                     title=\"{escape(note)}\"/>\n"
+            f"{movie_poster}\n"
             f"                {movie_title}\n"
             f"                {movie_year}\n"
             f"                {movie_rating}\n"
