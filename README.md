@@ -13,6 +13,7 @@ and can generate a simple HTML website from the saved movies.
 - Generate a static movie website with posters
 - Create separate user profiles with individual movie collections
 - Add personal notes to movies and show them as poster hover text
+- Show movie ratings on the generated website
 
 ## Setup
 

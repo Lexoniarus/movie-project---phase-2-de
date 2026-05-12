@@ -393,6 +393,10 @@ def generate_movie_grid(movies):
         escaped_title = escape(title)
         movie_title = f"<div class=\"movie-title\">{escaped_title}</div>"
         movie_year = f"<div class=\"movie-year\">{details['year']}</div>"
+        movie_rating = (
+            f"<div class=\"movie-rating\">Rating: "
+            f"{details['rating']:.1f}/10</div>"
+        )
         movie_items.append(
             "<li>\n"
             "            <div class=\"movie\">\n"
@@ -401,6 +405,7 @@ def generate_movie_grid(movies):
             f"                     title=\"{escape(note)}\"/>\n"
             f"                {movie_title}\n"
             f"                {movie_year}\n"
+            f"                {movie_rating}\n"
             "            </div>\n"
             "        </li>"
         )

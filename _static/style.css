@@ -31,7 +31,8 @@ body {
 }
 
 .movie-title,
-.movie-year {
+.movie-year,
+.movie-rating {
   font-size: 0.8em;
   text-align: center;
 }
@@ -42,6 +43,12 @@ body {
 
 .movie-year {
   color: #999;
+}
+
+.movie-rating {
+  color: #009B50;
+  font-weight: bold;
+  margin-top: 4px;
 }
 
 
