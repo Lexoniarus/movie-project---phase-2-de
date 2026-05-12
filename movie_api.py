@@ -46,3 +46,36 @@ def fetch_movie_data(title, api_key=None):
         return None
 
     return movie_data
+
+
+def get_movie_details(title, api_key=None):
+    """Return normalized movie details for a single OMDb title."""
+    movie_data = fetch_movie_data(title, api_key)
+
+    if movie_data is None:
+        return None
+
+    rating = movie_data.get("imdbRating")
+
+    if rating == "N/A":
+        print("Error: Movie rating is not available.")
+        return None
+
+    try:
+        year = int(movie_data["Year"][:4])
+        rating = float(rating)
+    except (KeyError, TypeError, ValueError):
+        print("Error: Movie data is incomplete.")
+        return None
+
+    poster_url = movie_data.get("Poster", "")
+
+    if poster_url == "N/A":
+        poster_url = ""
+
+    return {
+        "title": movie_data["Title"],
+        "year": year,
+        "rating": rating,
+        "poster_url": poster_url,
+    }

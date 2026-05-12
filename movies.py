@@ -5,6 +5,7 @@ from __future__ import annotations
 import statistics
 from datetime import datetime
 
+import movie_api
 import movie_storage_sql as storage
 
 
@@ -136,15 +137,23 @@ def add_movie():
     movies = storage.list_movies()
     title = prompt_non_empty_title("Enter new movie name: ")
 
-    if title in movies:
-        print(f"Movie '{title}' already exists!")
+    movie_details = movie_api.get_movie_details(title)
+
+    if movie_details is None:
+        print(f"Movie '{title}' could not be added.")
         return
 
-    year = prompt_year("Enter movie year: ")
-    rating = prompt_rating("Enter movie rating: ")
+    if movie_details["title"] in movies:
+        print(f"Movie '{movie_details['title']}' already exists!")
+        return
 
-    storage.add_movie(title, year, rating)
-    print(f"Movie '{title}' successfully added.")
+    storage.add_movie(
+        movie_details["title"],
+        movie_details["year"],
+        movie_details["rating"],
+        movie_details["poster_url"],
+    )
+    print(f"Movie '{movie_details['title']}' successfully added.")
 
 
 def delete_movie():
