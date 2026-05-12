@@ -1,0 +1,52 @@
+{
+    "In the Name of the Father": {
+        "title": "In the Name of the Father",
+        "year": 1993,
+        "rating": 8.1
+    },
+    "Titanic": {
+        "title": "Titanic",
+        "year": 1997,
+        "rating": 7.9
+    },
+    "The Shawshank Redemption": {
+        "title": "The Shawshank Redemption",
+        "year": 1994,
+        "rating": 9.3
+    },
+    "The Godfather": {
+        "title": "The Godfather",
+        "year": 1972,
+        "rating": 9.2
+    },
+    "The Dark Knight": {
+        "title": "The Dark Knight",
+        "year": 2008,
+        "rating": 9.0
+    },
+    "Schindler's List": {
+        "title": "Schindler's List",
+        "year": 1993,
+        "rating": 8.9
+    },
+    "Forrest Gump": {
+        "title": "Forrest Gump",
+        "year": 1994,
+        "rating": 8.8
+    },
+    "Pulp Fiction": {
+        "title": "Pulp Fiction",
+        "year": 1994,
+        "rating": 8.9
+    },
+    "The Matrix": {
+        "title": "The Matrix",
+        "year": 1999,
+        "rating": 1.0
+    },
+    "Fight Club": {
+        "title": "Fight Club",
+        "year": 1999,
+        "rating": 8.8
+    }
+}
