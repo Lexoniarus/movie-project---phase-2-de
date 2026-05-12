@@ -150,6 +150,11 @@ def select_user():
         users = storage.list_users()
 
         print("Welcome to the Movie App!")
+
+        if not users:
+            print("No users found. Create your first user profile.")
+            return create_user()
+
         print("Select a user:")
 
         for index, user in enumerate(users, start=1):

@@ -12,7 +12,7 @@ DB_FILE_PATH = DATA_DIR / "movies.db"
 DB_URL = f"sqlite:///{DB_FILE_PATH.as_posix()}"
 
 DATA_DIR.mkdir(exist_ok=True)
-engine = create_engine(DB_URL, echo=True)
+engine = create_engine(DB_URL, echo=False)
 
 
 def _create_users_table():
