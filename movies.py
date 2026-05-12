@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from html import escape
+from pathlib import Path
 import statistics
 from datetime import datetime
 
@@ -9,11 +11,15 @@ import movie_api
 import movie_storage_sql as storage
 
 
+APP_TITLE = "My Movie App"
 MIN_RATING = 0.0
 MAX_RATING = 10.0
 MIN_YEAR = 1888
 MAX_YEAR = datetime.now().year + 10
-VALID_MENU_CHOICES = {str(number) for number in range(10)}
+STATIC_DIR = Path(__file__).resolve().parent / "_static"
+TEMPLATE_FILE_PATH = STATIC_DIR / "index_template.html"
+WEBSITE_FILE_PATH = STATIC_DIR / "index.html"
+VALID_MENU_CHOICES = {str(number) for number in range(11)}
 
 
 def print_menu():
@@ -28,18 +34,19 @@ def print_menu():
     print("6. Search movie")
     print("7. Sort movies by rating")
     print("8. Sort movies by year")
-    print("9. Filter movies")
+    print("9. Generate website")
+    print("10. Filter movies")
 
 
 def prompt_menu_choice():
     """Prompt the user for a valid menu choice."""
     while True:
-        choice = input("Enter choice (0-9): ").strip()
+        choice = input("Enter choice (0-10): ").strip()
 
         if choice in VALID_MENU_CHOICES:
             return choice
 
-        print("Invalid choice. Please enter a number from 0 to 9.")
+        print("Invalid choice. Please enter a number from 0 to 10.")
 
 
 def prompt_non_empty_title(prompt_text):
@@ -320,6 +327,49 @@ def filter_movies():
     )
 
 
+def generate_movie_grid(movies):
+    """Generate the HTML movie grid from stored movie data."""
+    movie_items = []
+
+    for title, details in sorted(movies.items(), key=lambda item: item[0]):
+        poster_url = details.get("poster_url") or ""
+        escaped_title = escape(title)
+        movie_title = f"<div class=\"movie-title\">{escaped_title}</div>"
+        movie_year = f"<div class=\"movie-year\">{details['year']}</div>"
+        movie_items.append(
+            "<li>\n"
+            "            <div class=\"movie\">\n"
+            "                <img class=\"movie-poster\"\n"
+            f"                     src=\"{escape(poster_url)}\"/>\n"
+            f"                {movie_title}\n"
+            f"                {movie_year}\n"
+            "            </div>\n"
+            "        </li>"
+        )
+
+    return "\n        ".join(movie_items)
+
+
+def generate_website():
+    """Generate an HTML website from the stored movies."""
+    movies = storage.list_movies()
+    movie_grid = generate_movie_grid(movies)
+
+    with TEMPLATE_FILE_PATH.open("r", encoding="utf-8") as template_file:
+        template_content = template_file.read()
+
+    website_content = template_content.replace("__TEMPLATE_TITLE__", APP_TITLE)
+    website_content = website_content.replace(
+        "__TEMPLATE_MOVIE_GRID__",
+        movie_grid,
+    )
+
+    with WEBSITE_FILE_PATH.open("w", encoding="utf-8") as website_file:
+        website_file.write(website_content)
+
+    print("Website was generated successfully.")
+
+
 def handle_menu_choice(choice):
     """Execute the action that belongs to the chosen menu option."""
     if choice == "1":
@@ -339,6 +389,8 @@ def handle_menu_choice(choice):
     elif choice == "8":
         sort_movies_by_year()
     elif choice == "9":
+        generate_website()
+    elif choice == "10":
         filter_movies()
 
 
